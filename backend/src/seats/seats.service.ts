@@ -1,7 +1,7 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
-import { REDIS_CLIENT } from 'redis/redis.module';
+import { REDIS_CLIENT } from '../redis/redis.module';
 
 @Injectable()
 export class SeatsService {

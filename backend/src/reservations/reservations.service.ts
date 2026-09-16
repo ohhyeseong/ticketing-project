@@ -32,10 +32,25 @@ export class ReservationsService {
     return this.prisma.reservation.findMany({ where: { userId } });
   }
 
-  cancel(id: number) {
-    return this.prisma.reservation.update({
+  findAll() {
+    return this.prisma.reservation.findMany({
+      include: {
+        user: { select: { id: true, email: true } },
+        concert: true,
+        seat: true,
+      },
+    });
+  }
+
+  async cancel(id: number) {
+    const reservation = await this.prisma.reservation.update({
       where: { id },
       data: { status: 'CANCELLED' },
     });
+    await this.prisma.seat.update({
+      where: { id: reservation.seatId },
+      data: { status: 'AVAILABLE' },
+    });
+    return reservation;
   }
 }

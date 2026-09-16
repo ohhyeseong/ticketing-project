@@ -5,7 +5,7 @@ import { ConcertsModule } from './concerts/concerts.module';
 import { SeatsModule } from './seats/seats.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { PaymentsModule } from './payments/payments.module';
-import { RedisModule } from 'redis/redis.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
