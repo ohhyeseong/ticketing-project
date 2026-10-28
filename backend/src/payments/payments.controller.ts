@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -12,8 +12,8 @@ export class PaymentsController {
   constructor(private paymentsService: PaymentsService) {}
 
   @Post()
-  create(@Body() dto: CreatePaymentDto) {
-    return this.paymentsService.create(dto);
+  create(@Body() dto: CreatePaymentDto, @Req() req) {
+    return this.paymentsService.create(dto, req.user.userId);
   }
 
   @Get(':reservationId')
