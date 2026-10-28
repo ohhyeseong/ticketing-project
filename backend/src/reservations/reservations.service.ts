@@ -32,13 +32,16 @@ export class ReservationsService {
       throw new ForbiddenException('먼저 해당 좌석을 선점해야 합니다.');
     }
 
-    const existing = await this.prisma.reservation.findFirst({
-      where: { userId, seatId: seat.id, status: 'PENDING' },
-    });
-    if (existing) return existing;
-
-    return this.prisma.reservation.create({
-      data: { userId, concertId: dto.concertId, seatId: dto.seatId },
+    // 좌석 행을 잠가 같은 좌석의 동시 생성 요청을 직렬화한다 (조회 후 생성이 겹치지 않도록)
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM Seat WHERE id = ${seat.id} FOR UPDATE`;
+      const existing = await tx.reservation.findFirst({
+        where: { userId, seatId: seat.id, status: 'PENDING' },
+      });
+      if (existing) return existing;
+      return tx.reservation.create({
+        data: { userId, concertId: dto.concertId, seatId: dto.seatId },
+      });
     });
   }
 
@@ -47,6 +50,9 @@ export class ReservationsService {
     if (reservation.status === 'CONFIRMED') return reservation;
     if (reservation.status === 'CANCELLED') throw new ConflictException('취소된 예약입니다.');
     if ((await this.seatsService.getHolder(reservation.seatId)) !== userId) {
+      // 동시에 온 다른 확정 요청이 먼저 성공하며 선점 키를 지웠을 수 있다
+      const latest = await this.prisma.reservation.findUnique({ where: { id } });
+      if (latest.status === 'CONFIRMED') return latest;
       throw new ConflictException('좌석 선점 시간이 만료되었습니다.');
     }
 
