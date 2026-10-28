@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
@@ -19,8 +19,8 @@ export class ReservationsController {
   }
 
   @Post(':id/confirm')
-  confirm(@Param('id') id: string) {
-    return this.reservationsService.confirm(Number(id));
+  confirm(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.reservationsService.confirm(id, req.user.userId);
   }
 
   @Get('my')
@@ -36,7 +36,7 @@ export class ReservationsController {
   }
 
   @Post(':id/cancel')
-  cancel(@Param('id') id: string) {
-    return this.reservationsService.cancel(Number(id));
+  cancel(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.reservationsService.cancel(id, req.user.userId);
   }
 }

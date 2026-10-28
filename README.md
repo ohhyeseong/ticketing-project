@@ -93,6 +93,24 @@ UPDATE user SET role = 'ADMIN' WHERE email = '관리자로_바꿀_이메일';
 
 전체 요청/응답 스키마와 예시값은 Swagger 문서(`/api`)에서 확인할 수 있습니다.
 
+## 테스트
+
+실제 MySQL·Redis를 쓰는 e2e 테스트입니다. 개발 데이터가 지워지지 않도록 전용 DB(`ticketing_test`)와 Redis DB 15번만 사용하며, 설정이 어긋나면 테스트가 시작 전에 실패합니다.
+
+```bash
+cd backend
+cp .env.test.example .env.test   # DATABASE_URL의 계정 정보를 채웁니다
+# .env.test의 값을 환경변수로 지정한 뒤 테스트 DB 스키마 생성
+npx prisma db push --skip-generate
+npm run test:e2e
+```
+
+검증 시나리오와 실행 결과는 [docs/verification](./docs/verification/2026-10-28-seat-hold-verification.md)에 있습니다.
+
+## 멱등성
+
+같은 요청이 반복되어도(더블클릭, 재시도) 한 번 처리한 것과 같은 결과를 돌려줍니다. 같은 사용자의 재선점, 예약 생성(기존 대기 예약 반환), 확정·취소, 결제 재요청이 해당합니다.
+
 ## 개발 메모
 
 이 프로젝트는 기본 CRUD를 완성한 뒤, 동시성 처리·대용량 데이터 처리 같은 핵심 기술 챌린지를 의도적으로 단순한 버전으로 먼저 구현하고 직접 문제를 겪으며 개선해나가는 방식으로 진행되고 있습니다. 진행 배경과 트러블슈팅 계획은 설계 문서의 7~8절을 참고하세요.
